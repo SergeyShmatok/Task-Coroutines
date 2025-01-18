@@ -33,9 +33,10 @@ fun main() {
                 val posts = getPosts(client)
                     .map { post ->
                         async { // Создает сопрограмму и возвращает ее будущий результат как реализацию Deferred.
-                            PostWithComments(post, getComments(client, post.id),
-                                getAuthor(client, post.authorId))
-                                .let {it.comments.forEach{ comment -> getAuthor(client, comment.authorId)}}
+                            //val commentAuthor = post.comment.forEach{ comment -> getAuthor(client, comment.authorId)}
+                            val comments = getComments(client, post.id)
+                            val authorsComment =  comments.map {getAuthor(client, it.authorId)}
+                            PostWithComments(post, comments, getAuthor(client, post.authorId), authorsComment)
                             // По идее, возвращает инстансы класса PostWithComments,
                             // с полями, инициализированными полученными до этого постами и комментариями,
                             // посредством вызова getComments прямо в конструкторе, и передачей ему
@@ -110,7 +111,6 @@ suspend fun getComments(client: OkHttpClient, id: Long): List<Comment> =
 
 suspend fun getAuthor(client: OkHttpClient, id: Long): Author =
     makeRequest("$BASE_URL/api/authors/$id", client, object : TypeToken<Author>() {})
-
 
 /*
 fun main() {
